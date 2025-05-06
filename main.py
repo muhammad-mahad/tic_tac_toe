@@ -3,14 +3,12 @@
 Main entry point for the Tic-Tac-Toe game.
 Controls the overall game flow and user interactions.
 """
-from game.board import Board
-from game.players import Player
-from tools.display import (
-    display_welcome as welcome,
-    display_board as show_board,
-    announce_winner,
-    prompt_play_again
-)
+# Import individual modules to avoid circular imports
+from game import Board
+from game import Player
+
+# Import display functions with alias for clarity
+import tools.display as display_utils
 from tools.logger import Logger
 
 def main():
@@ -20,8 +18,8 @@ def main():
     player1_name = input("Please enter Player 1 name: ")
     player2_name = input("Please enter Player 2 name: ")
     
-    # Welcome players
-    welcome(player1_name, player2_name)
+    # Welcome players using alias imports
+    display_utils.display_welcome(player1_name, player2_name)
     
     play_game = True
     while play_game:
@@ -41,7 +39,7 @@ def main():
         
         while not game_over:
             # Display current board
-            show_board(board)
+            display_utils.display_board(board)
             
             # Get player move
             position = current_player.get_move(board)
@@ -50,17 +48,21 @@ def main():
             board.place_move(position, current_player.marker)
             move_count += 1
             
+            # Show marker statistics using Counter
+            stats = board.get_marker_stats()
+            print(f"Board stats: {stats['X']} X's, {stats['O']} O's")
+            
             # Log the move
             logger.log_move(move_count, current_player, position, board)
             
             # Check for win or draw
             if board.check_winner(current_player.marker):
-                show_board(board)
-                announce_winner(current_player.name)
+                display_utils.display_board(board)
+                display_utils.announce_winner(current_player.name)
                 logger.log_result(f"{current_player.name} wins!")
                 game_over = True
             elif board.is_full():
-                show_board(board)
+                display_utils.display_board(board)
                 print("The game ended in a draw!")
                 logger.log_result("Draw")
                 game_over = True
@@ -69,7 +71,7 @@ def main():
                 current_player = player2 if current_player == player1 else player1
         
         # Ask to play again
-        play_game = prompt_play_again()
+        play_game = display_utils.prompt_play_again()
     
     print("Thanks for playing Tic-Tac-Toe!")
 

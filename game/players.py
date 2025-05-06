@@ -73,7 +73,8 @@ class Player:
         Returns:
             int: The selected position (1-9)
         """
-        available_moves = board.get_available_moves()
+        # Use the generator to get available moves
+        available_moves = list(board.available_moves_gen())
         move = random.choice(available_moves)
         print(f"{self.name}'s Turn ({self.marker}):\nComputer selects position {move}")
         return move

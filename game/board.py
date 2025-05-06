@@ -2,7 +2,7 @@
 Board class for Tic-Tac-Toe game.
 Handles the board state and game logic.
 """
-from game.utils import available_moves_generator
+from game.utils import available_moves_generator, create_move_history, count_marker_positions
 
 class Board:
     """
@@ -14,6 +14,8 @@ class Board:
         # Board is represented as a list of 9 elements (positions 1-9)
         # with values None (empty), 'X', or 'O'
         self.cells = [str(i) for i in range(1, 10)]
+        # Use deque for move history (undo functionality)
+        self.move_history = create_move_history()
         
     def get_board_state(self):
         """Return the current state of the board."""
@@ -24,7 +26,7 @@ class Board:
         try:
             position = int(position)
             # Check if position is in range 1-9 and not already taken
-            return 1 <= position <= 9 and self.cells[position-1] not in ['X', 'O']
+            return position in self.get_available_moves()
         except ValueError:
             return False
     
@@ -33,11 +35,31 @@ class Board:
         if not self.is_valid_move(position):
             raise ValueError(f"Invalid move: {position}")
         
-        self.cells[int(position) - 1] = marker
+        position = int(position)
+        # Store previous state for potential undo
+        self.move_history.append((position - 1, self.cells[position - 1]))
+        
+        # Place the marker
+        self.cells[position - 1] = marker
+    
+    def undo_last_move(self):
+        """Undo the last move if available."""
+        if not self.move_history:
+            return False
+        
+        # Get the last move from history
+        position, original_value = self.move_history.pop()
+        # Restore the original value
+        self.cells[position] = original_value
+        return True
+    
+    def get_marker_stats(self):
+        """Get statistics about markers on the board."""
+        return count_marker_positions(self.cells)
     
     def get_available_moves(self):
         """Return a list of available positions on the board."""
-        return [i+1 for i, cell in enumerate(self.cells) if cell not in ['X', 'O']]
+        return list(self.available_moves_gen())
     
     def available_moves_gen(self):
         """Return a generator of available positions."""
